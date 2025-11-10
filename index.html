@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Your Passions</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Usamos la fuente Inter, como es habitual */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Clase para ocultar pantallas */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-indigo-200 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Contenedor principal de la aplicación -->
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-8 transition-all">
+
+        <!-- 1. Pantalla de Inicio -->
+        <div id="start-screen" class="text-center">
+            <img src="https://fr.zone-secure.net/149562/1176467.png" 
+                 alt="Institutional Logo" 
+                 class="w-40 mx-auto mb-6"
+                 onerror="this.alt='Logo not available'">
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">Find Your Passions</h1>
+            <p class="text-gray-600 mb-8">
+                Take a moment to reflect. Press "Start" to begin the activity.
+            </p>
+            <button id="start-button" class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-full text-lg shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105">
+                Start
+            </button>
+        </div>
+
+        <!-- 2. Pantalla de Preguntas -->
+        <div id="question-screen" class="hidden text-center">
+            <h2 class="text-xl font-semibold text-indigo-700 mb-4">Reflect...</h2>
+            <!-- La pregunta se insertará aquí -->
+            <p id="question-text" class="text-2xl text-gray-800 min-h-[150px] flex items-center justify-center my-8">
+                ...
+            </p>
+            <button id="next-button" class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-full text-lg shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105">
+                Next
+            </button>
+        </div>
+
+        <!-- 3. Pantalla Final -->
+        <div id="final-screen" class="hidden text-center">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">Summary of Your Reflection</h1>
+            <p class="text-gray-600 mb-6">These were the questions you explored:</p>
+            
+            <!-- La lista de preguntas se insertará aquí -->
+            <ul id="final-questions-list" class="list-decimal list-inside text-left text-gray-700 space-y-3 mb-8 text-base">
+                <!-- <li>Pregunta 1...</li> -->
+            </ul>
+
+            <button id="restart-button" class="w-full bg-gray-600 text-white font-bold py-3 px-6 rounded-full text-lg shadow-lg hover:bg-gray-700 transition-all transform hover:scale-105">
+                Restart
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- PREGUNTAS ---
+        const allQuestions = [
+            "What are you passionate about in life?",
+            "What activities make you lose track of time and space and generate positive emotions?",
+            "What situations make you feel that 'this is worth it'?",
+            "What activities give you energy even when you are tired?",
+            "What do you do that makes you feel like 'you are being yourself'?",
+            "What motivated you to say 'yes' to something difficult in the past few months?",
+            "What would you choose, even if it were slower or more complex?"
+        ];
+
+        // --- VARIABLES DE ESTADO ---
+        let selectedQuestions = [];
+        let askedQuestions = [];
+        let currentQuestionIndex = 0;
+
+        // --- ELEMENTOS DEL DOM ---
+        const startScreen = document.getElementById('start-screen');
+        const questionScreen = document.getElementById('question-screen');
+        const finalScreen = document.getElementById('final-screen');
+
+        const startButton = document.getElementById('start-button');
+        const nextButton = document.getElementById('next-button');
+        const restartButton = document.getElementById('restart-button');
+
+        const questionText = document.getElementById('question-text');
+        const finalQuestionsList = document.getElementById('final-questions-list');
+
+        // --- FUNCIONES ---
+
+        /**
+         * Muestra una pantalla por su ID y oculta las demás
+         */
+        function showScreen(screenId) {
+            startScreen.classList.add('hidden');
+            questionScreen.classList.add('hidden');
+            finalScreen.classList.add('hidden');
+            
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        /**
+         * Algoritmo Fisher-Yates para barajar un array
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        /**
+         * Configura e inicia el juego
+         */
+        function startGame() {
+            // Barajamos y seleccionamos 3 preguntas
+            selectedQuestions = shuffleArray([...allQuestions]).slice(0, 3);
+            askedQuestions = [];
+            currentQuestionIndex = 0;
+            
+            // Mostramos la primera pregunta
+            displayNextQuestion();
+        }
+
+        /**
+         * Muestra la siguiente pregunta o la pantalla final
+         */
+        function displayNextQuestion() {
+            if (currentQuestionIndex < selectedQuestions.length) {
+                const question = selectedQuestions[currentQuestionIndex];
+                questionText.textContent = question;
+                askedQuestions.push(question); // Guardamos la pregunta para el resumen
+                
+                currentQuestionIndex++;
+                
+                // Cambiamos el texto del botón si es la última pregunta
+                if (currentQuestionIndex === selectedQuestions.length) {
+                    nextButton.textContent = "Finish";
+                }
+                
+                showScreen('question-screen');
+            } else {
+                // Ya se mostraron las 3 preguntas
+                showFinalScreen();
+            }
+        }
+
+        /**
+         * Muestra la pantalla final con el resumen
+         */
+        function showFinalScreen() {
+            // Limpiamos la lista por si acaso
+            finalQuestionsList.innerHTML = '';
+
+            // Llenamos la lista con las preguntas mostradas
+            askedQuestions.forEach(q => {
+                const li = document.createElement('li');
+                li.textContent = q;
+                finalQuestionsList.appendChild(li);
+            });
+
+            showScreen('final-screen');
+        }
+
+        /**
+         * Reinicia la actividad
+         */
+        function restartGame() {
+            nextButton.textContent = "Next"; // Reseteamos el texto del botón
+            showScreen('start-screen');
+        }
+
+        // --- EVENT LISTENERS ---
+        startButton.addEventListener('click', startGame);
+        nextButton.addEventListener('click', displayNextQuestion);
+        restartButton.addEventListener('click', restartGame);
+    </script>
+
+</body>
+</html>
